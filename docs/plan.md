@@ -74,10 +74,21 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
 ## Etapas
 
 1. ✅ Alcance, stack y esqueleto que arranca en local.
-2. Conectar Supabase: crear proyecto nuevo (lo hace la dueña del proyecto),
-   variables de entorno, clientes de `@supabase/ssr`, `proxy.ts`, login/registro.
+2. ✅ Conectar Supabase: proyecto nuevo, variables de entorno, clientes de
+   `@supabase/ssr`, `proxy.ts`, login/registro/logout.
+   - **Pendiente:** "Confirm email" está **desactivado** en Supabase mientras
+     desarrollamos (el correo por defecto tiene un límite muy bajo y no permite
+     editar plantillas). Se reactiva en la etapa 7.
 3. Primera migración con tablas + RLS, y pruebas de que un usuario no ve datos de otro.
 4. Clientes y catálogo.
 5. Presupuestos, estados y PDF.
 6. Multimoneda y tasa BCV.
 7. Seed de demo y despliegue en Vercel.
+   - SMTP propio (p. ej. Resend): el correo por defecto de Supabase solo envía
+     a miembros del equipo del proyecto.
+   - Plantilla "Confirm signup" en español con
+     `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`, para
+     que el enlace funcione en cualquier navegador o dispositivo (la ruta
+     `/auth/confirm` ya lo admite).
+   - Reactivar "Confirm email" y probar el enlace de confirmación.
+   - Actualizar Site URL y Redirect URLs con el dominio de Vercel.

@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
@@ -6,7 +9,14 @@ export default function Home() {
         Presupuestos claros para pequeños negocios: clientes, catálogo, PDF y
         multimoneda.
       </p>
-      <p className="text-sm text-zinc-500">En construcción.</p>
+      <div className="flex gap-3">
+        <Link href="/login" className={buttonVariants()}>
+          Entrar
+        </Link>
+        <Link href="/registro" className={buttonVariants({ variant: "outline" })}>
+          Crear cuenta
+        </Link>
+      </div>
     </main>
   );
 }
