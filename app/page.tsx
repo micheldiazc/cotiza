@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { MODO_DEMO } from "@/lib/modo";
 
 export default function Home() {
   return (
@@ -9,14 +10,20 @@ export default function Home() {
         Presupuestos claros para pequeños negocios: clientes, catálogo, PDF y
         multimoneda.
       </p>
-      <div className="flex gap-3">
-        <Link href="/login" className={buttonVariants()}>
-          Entrar
+      {MODO_DEMO ? (
+        <Link href="/panel" className={buttonVariants()}>
+          Ver la demo
         </Link>
-        <Link href="/registro" className={buttonVariants({ variant: "outline" })}>
-          Crear cuenta
-        </Link>
-      </div>
+      ) : (
+        <div className="flex gap-3">
+          <Link href="/login" className={buttonVariants()}>
+            Entrar
+          </Link>
+          <Link href="/registro" className={buttonVariants({ variant: "outline" })}>
+            Crear cuenta
+          </Link>
+        </div>
+      )}
     </main>
   );
 }

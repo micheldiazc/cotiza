@@ -124,7 +124,18 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
    - Aviso aceptado: "Leaked Password Protection" (HaveIBeenPwned) no está
      disponible en el plan gratuito. Compensación: longitud mínima de
      contraseña 8 también en Supabase Auth, no solo en el formulario.
-3b. Capa de repositorio y modo demo (antes de construir pantallas de datos).
+3b. ✅ Capa de repositorio y modo demo.
+   - `lib/datos/`: tipos, reglas compartidas (validaciones, totales, estados),
+     interfaz `Repositorio` e implementaciones `supabase.ts` y `navegador/`.
+   - 35 tests con Vitest (`npm test`): reglas y contrato del repositorio contra
+     IndexedDB en memoria (fake-indexeddb).
+   - Verificado: el build demo no contiene la URL ni la clave de Supabase ni su
+     cliente; el build real no contiene el código ni los datos de la demo.
+   - **Pendiente (etapa 5):** en Supabase, crear/actualizar un presupuesto con
+     sus ítems son varias peticiones (no atómico; hay compensación si fallan
+     los ítems). Pasarlo a una función de Postgres (`rpc`) con transacción.
+   - **Pendiente (etapa 4):** probar el repositorio de Supabase con sesión real
+     al construir las pantallas.
 4. Clientes y catálogo.
 5. Presupuestos, estados y PDF.
 6. Multimoneda y tasa BCV.
