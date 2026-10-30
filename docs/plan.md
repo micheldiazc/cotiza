@@ -119,7 +119,11 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      editar plantillas). Se reactiva en la etapa 7.
 3. ✅ Primera migración con tablas + RLS, y prueba de que un usuario no ve
    datos de otro ("RLS OK").
-   - **Pendiente:** revisar *Security Advisor* en el panel de Supabase.
+   - Security Advisor revisado: se cerró `rls_auto_enable()` a la API (función
+     de Supabase para RLS automático, quedó ejecutable por anon/authenticated).
+   - Aviso aceptado: "Leaked Password Protection" (HaveIBeenPwned) no está
+     disponible en el plan gratuito. Compensación: longitud mínima de
+     contraseña 8 también en Supabase Auth, no solo en el formulario.
 3b. Capa de repositorio y modo demo (antes de construir pantallas de datos).
 4. Clientes y catálogo.
 5. Presupuestos, estados y PDF.
