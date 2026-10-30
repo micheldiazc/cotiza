@@ -22,7 +22,8 @@ impresión. Se reutilizan ideas, nunca datos, nombres ni marca del original.
 5. **Multimoneda**: moneda base del negocio, tasas configurables a mano y
    botón opcional para traer la tasa oficial BCV (USD/EUR → Bs). El presupuesto
    guarda la tasa usada, así el total no cambia si la tasa cambia después.
-6. **Demo**: cuenta de demostración con datos ficticios (seed) para el portafolio.
+6. **Demo**: versión que funciona solo en el navegador, sin Supabase, con datos
+   ficticios (ver "Modo demo").
 
 ### Extras posteriores (por orden de valor)
 
@@ -55,6 +56,43 @@ impresión. Se reutilizan ideas, nunca datos, nombres ni marca del original.
   la sesión y redirige a `/login`; además, cada página o acción del servidor
   comprueba el usuario con `supabase.auth.getUser()`.
 - El esquema vive en `supabase/migrations/` como SQL versionado.
+- FK compuestas `(id, user_id)` entre tablas: las FK se comprueban sin RLS, así
+  que sin ellas un usuario podría relacionar sus filas con filas de otro.
+- `supabase/tests/rls.sql` demuestra el aislamiento entre usuarios. Se ejecuta
+  tras cada cambio de esquema y debe terminar en "RLS OK".
+
+### Cómo aplicar migraciones
+
+La red de desarrollo corta las conexiones Postgres al pooler de Supabase, así
+que `supabase db push` no funciona desde aquí. Mientras tanto:
+
+1. Pegar la migración nueva en *SQL Editor* dentro de `begin … commit`, junto con
+   `insert into supabase_migrations.schema_migrations (version, name) values (…)`
+   para que la CLI la considere aplicada.
+2. Pegar `supabase/tests/rls.sql` y comprobar "RLS OK".
+3. Revisar *Advisors → Security Advisor*.
+
+## Modo demo
+
+La demo pública no usa Supabase: en el plan gratuito los proyectos inactivos se
+pausan, y la demo del portafolio tiene que estar siempre disponible.
+
+- **Capa de repositorio**: las pantallas piden "listar clientes", "guardar
+  presupuesto", etc. a una interfaz de TypeScript. Hay dos implementaciones:
+  - `RepositorioSupabase`: versión real, con login y RLS.
+  - `RepositorioNavegador`: IndexedDB, los datos se quedan en el navegador del visitante.
+- `NEXT_PUBLIC_DEMO_MODE=true` elige la implementación al compilar; el código de
+  Supabase queda fuera del bundle de la demo, y ese despliegue no tiene la URL
+  ni la clave de Supabase.
+- Las pantallas de datos leen y escriben desde el navegador (en la versión real
+  la seguridad la pone RLS). El login sigue con Server Actions y `proxy.ts`, y
+  en modo demo no existe: se entra directamente.
+- Datos de ejemplo de un negocio inventado, aviso fijo "Demo: tus datos se
+  guardan solo en este navegador" y botón "Restablecer demo".
+- Tasas BCV fijas de ejemplo, sin llamadas externas.
+- Publicación: dos proyectos de Vercel desde el mismo repo (`cotiza` real y
+  `cotiza-demo` con la variable activada). GitHub Pages no sirve: la exportación
+  estática de Next no admite `proxy.ts`, Server Actions ni cookies.
 
 ## Modelo de datos previsto
 
@@ -79,11 +117,14 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
    - **Pendiente:** "Confirm email" está **desactivado** en Supabase mientras
      desarrollamos (el correo por defecto tiene un límite muy bajo y no permite
      editar plantillas). Se reactiva en la etapa 7.
-3. Primera migración con tablas + RLS, y pruebas de que un usuario no ve datos de otro.
+3. ✅ Primera migración con tablas + RLS, y prueba de que un usuario no ve
+   datos de otro ("RLS OK").
+   - **Pendiente:** revisar *Security Advisor* en el panel de Supabase.
+3b. Capa de repositorio y modo demo (antes de construir pantallas de datos).
 4. Clientes y catálogo.
 5. Presupuestos, estados y PDF.
 6. Multimoneda y tasa BCV.
-7. Seed de demo y despliegue en Vercel.
+7. Despliegue en Vercel (versión real y demo).
    - SMTP propio (p. ej. Resend): el correo por defecto de Supabase solo envía
      a miembros del equipo del proyecto.
    - Plantilla "Confirm signup" en español con
