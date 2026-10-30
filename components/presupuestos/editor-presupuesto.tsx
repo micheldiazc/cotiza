@@ -21,7 +21,8 @@ import {
   type Presupuesto,
   type Producto,
 } from "@/lib/datos";
-import { formatearDinero, formatearNumero } from "@/lib/formato";
+import { obtenerTasasBcv } from "@/lib/bcv";
+import { formatearDinero, formatearFecha, formatearNumero } from "@/lib/formato";
 import { leerNumero } from "@/lib/formularios";
 import { mensajeDeError, useDatos } from "@/lib/use-datos";
 
@@ -158,8 +159,49 @@ function Formulario({
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
+  const [origenTasa, setOrigenTasa] = useState<string | null>(null);
+  const [consultandoBcv, setConsultandoBcv] = useState(false);
+
   const monedaBase = ajustes.monedaBase;
   const enOtraMoneda = form.moneda.toUpperCase() !== monedaBase;
+  const bcvDisponible = form.moneda === "VES" && ["USD", "EUR"].includes(monedaBase);
+
+  /** Al cambiar de moneda, propone la última tasa registrada para ese par. */
+  async function cambiarMoneda(moneda: string) {
+    cambiar("moneda", moneda);
+    setOrigenTasa(null);
+    if (!/^[A-Z]{3}$/.test(moneda) || moneda === monedaBase) return;
+    const repo = await obtenerRepositorio();
+    const tasa = await repo.tasas.ultima(monedaBase, moneda);
+    if (!tasa) {
+      setOrigenTasa(`No hay tasas ${monedaBase} → ${moneda} registradas: escríbela.`);
+      return;
+    }
+    // Solo si el usuario no ha cambiado de moneda mientras tanto.
+    setForm((f) => (f.moneda === moneda ? { ...f, tasa: formatearNumero(tasa.valor, 4) } : f));
+    setOrigenTasa(
+      `Última tasa registrada (${tasa.fuente === "bcv" ? "BCV" : "manual"}, ${formatearFecha(tasa.fecha)}).`,
+    );
+  }
+
+  async function usarBcv() {
+    setConsultandoBcv(true);
+    try {
+      const bcv = await obtenerTasasBcv();
+      const valor = monedaBase === "EUR" ? bcv.eur : bcv.usd;
+      const repo = await obtenerRepositorio();
+      const ultima = await repo.tasas.ultima(monedaBase, "VES");
+      if (!ultima || ultima.fecha !== bcv.fecha || ultima.valor !== valor) {
+        await repo.tasas.registrar({ monedaOrigen: monedaBase, monedaDestino: "VES", valor, fuente: "bcv", fecha: bcv.fecha });
+      }
+      cambiar("tasa", formatearNumero(valor, 4));
+      setOrigenTasa(`BCV del ${formatearFecha(bcv.fecha)}${bcv.ejemplo ? " (valor de ejemplo en la demo)" : ""}.`);
+    } catch (e) {
+      toast.error(mensajeDeError(e));
+    } finally {
+      setConsultandoBcv(false);
+    }
+  }
   const tasa = enOtraMoneda ? leerNumero(form.tasa) : 1;
 
   const itemsNumericos = form.lineas.map((l) => ({
@@ -325,7 +367,7 @@ function Formulario({
               className="uppercase"
               required
               value={form.moneda}
-              onChange={(e) => cambiar("moneda", e.target.value.toUpperCase())}
+              onChange={(e) => cambiarMoneda(e.target.value.toUpperCase())}
             />
             <datalist id="p-monedas">
               {[monedaBase, "USD", "EUR", "VES"]
@@ -340,13 +382,24 @@ function Formulario({
               <Label htmlFor="p-tasa">
                 Tasa (1 {monedaBase} = ? {form.moneda || "…"})
               </Label>
-              <Input
-                id="p-tasa"
-                inputMode="decimal"
-                required
-                value={form.tasa}
-                onChange={(e) => cambiar("tasa", e.target.value)}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="p-tasa"
+                  inputMode="decimal"
+                  required
+                  value={form.tasa}
+                  onChange={(e) => {
+                    cambiar("tasa", e.target.value);
+                    setOrigenTasa(null);
+                  }}
+                />
+                {bcvDisponible && (
+                  <Button type="button" variant="outline" size="sm" onClick={usarBcv} disabled={consultandoBcv}>
+                    {consultandoBcv ? "Consultando…" : "Usar BCV de hoy"}
+                  </Button>
+                )}
+              </div>
+              {origenTasa && <p className="text-xs text-zinc-500">{origenTasa}</p>}
             </div>
           )}
         </CardContent>

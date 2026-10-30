@@ -10,6 +10,7 @@ import { ErrorDatos, obtenerRepositorio, type AjustesNegocio } from "@/lib/datos
 import { formatearNumero } from "@/lib/formato";
 import { numero, texto } from "@/lib/formularios";
 import { mensajeDeError, useDatos } from "@/lib/use-datos";
+import { TarjetaTasas } from "./tarjeta-tasas";
 
 const MONEDAS_SUGERIDAS = [
   ["USD", "Dólar estadounidense"],
@@ -166,6 +167,8 @@ export function PantallaAjustes() {
           </div>
         </form>
       )}
+
+      {ajustes && <TarjetaTasas monedaBase={ajustes.monedaBase} />}
     </>
   );
 }

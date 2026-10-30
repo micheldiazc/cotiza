@@ -14,6 +14,23 @@ export interface AjustesNegocio {
   ivaPorcentaje: number;
 }
 
+export type FuenteTasa = "manual" | "bcv";
+
+/** 1 monedaOrigen = valor monedaDestino. */
+export interface Tasa {
+  id: string;
+  monedaOrigen: string;
+  monedaDestino: string;
+  valor: number;
+  fuente: FuenteTasa;
+  /** Fecha de la tasa, AAAA-MM-DD. */
+  fecha: string;
+  creadoEn: string;
+}
+
+export type DatosTasa = Pick<Tasa, "monedaOrigen" | "monedaDestino" | "valor"> &
+  Partial<Pick<Tasa, "fuente" | "fecha">>;
+
 export interface Cliente {
   id: string;
   nombre: string;

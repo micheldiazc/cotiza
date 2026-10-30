@@ -39,6 +39,17 @@ export async function sembrar(repo: Repositorio) {
     ivaPorcentaje: 16,
   });
 
+  // Tasas de ejemplo (no son las oficiales del día: la demo no consulta servicios externos).
+  for (const [monedaOrigen, monedaDestino, valor, fuente, dias] of [
+    ["USD", "VES", 850, "bcv", 20],
+    ["EUR", "VES", 940, "bcv", 20],
+    ["USD", "VES", 880, "bcv", 1],
+    ["EUR", "VES", 975, "bcv", 1],
+    ["USD", "EUR", 0.92, "manual", 1],
+  ] as const) {
+    await repo.tasas.registrar({ monedaOrigen, monedaDestino, valor, fuente, fecha: haceDias(dias) });
+  }
+
   const [cafe, ferreteria, clinica, academia, ana, pedro] = await Promise.all(
     [
       { nombre: "Café La Esquina", documento: "J-11111111-1", email: "compras@cafe.example.com" },
@@ -88,7 +99,7 @@ export async function sembrar(repo: Repositorio) {
     { clienteId: ferreteria.id, dias: 32, estado: "rechazado", items: [linea("Página web · Sitio corporativo (5 páginas)")], notas: "El cliente pidió una opción más económica." },
     { clienteId: ferreteria.id, dias: 25, estado: "aceptado", items: [linea("Página web · Landing de una página"), linea("Pendón publicitario · 2 x 3 m")] },
     { clienteId: clinica.id, dias: 14, estado: "enviado", items: [linea("Gestión de redes sociales · 20 publicaciones + historias", 3)], descuento: 10, notas: "Contrato trimestral con 10 % de descuento." },
-    { clienteId: academia.id, dias: 9, estado: "enviado", items: [linea("Tarjetas de presentación · 1000 unidades"), linea("Pendón publicitario · 1 x 2 m", 4)], moneda: "VES", tasa: 40.5 },
+    { clienteId: academia.id, dias: 9, estado: "enviado", items: [linea("Tarjetas de presentación · 1000 unidades"), linea("Pendón publicitario · 1 x 2 m", 4)], moneda: "VES", tasa: 880 },
     { clienteId: ana.id, dias: 5, estado: "aceptado", items: [linea("Diseño de logotipo · Básico (2 propuestas)"), linea("Tarjetas de presentación · 100 unidades")] },
     { clienteId: pedro.id, dias: 2, estado: "borrador", items: [linea("Gestión de redes sociales · 12 publicaciones")] },
     { clienteId: cafe.id, dias: 0, estado: "borrador", items: [linea("Pendón publicitario · 2 x 3 m", 2)], moneda: "EUR", tasa: 0.92 },

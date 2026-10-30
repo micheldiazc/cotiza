@@ -11,11 +11,13 @@ import {
   calcularTotales,
   comprobarEditable,
   comprobarTransicion,
+  compararTasas,
   ErrorDatos,
   hoy,
   validarCliente,
   validarNombre,
   validarPresupuesto,
+  validarTasa,
   validarVariante,
 } from "../reglas";
 import type { Repositorio } from "../repositorio";
@@ -26,6 +28,7 @@ import type {
   ItemPresupuesto,
   Presupuesto,
   Producto,
+  Tasa,
   Variante,
 } from "../tipos";
 import { sembrar } from "./semilla";
@@ -43,9 +46,11 @@ interface EsquemaDemo extends DBSchema {
   variantes: { key: string; value: Variante; indexes: { porProducto: string } };
   presupuestos: { key: string; value: PresupuestoGuardado; indexes: { porCliente: string } };
   items: { key: string; value: ItemGuardado; indexes: { porPresupuesto: string; porVariante: string } };
+  tasas: { key: string; value: Tasa; indexes: { porPar: [string, string] } };
 }
 
-const TABLAS = ["ajustes", "meta", "clientes", "productos", "variantes", "presupuestos", "items"] as const;
+const VERSION_BD = 2;
+const TABLAS = ["ajustes", "meta", "clientes", "productos", "variantes", "presupuestos", "items", "tasas"] as const;
 const CLAVE_AJUSTES = "ajustes";
 
 const AJUSTES_INICIALES: AjustesGuardados = {
@@ -79,17 +84,24 @@ export async function crearRepositorioNavegador({
   nombreBd = "cotiza-demo",
   conDatosDeEjemplo = true,
 }: OpcionesNavegador = {}): Promise<RepositorioNavegador> {
-  const db: IDBPDatabase<EsquemaDemo> = await openDB<EsquemaDemo>(nombreBd, 1, {
-    upgrade(db) {
-      db.createObjectStore("ajustes");
-      db.createObjectStore("meta");
-      db.createObjectStore("clientes", { keyPath: "id" });
-      db.createObjectStore("productos", { keyPath: "id" });
-      db.createObjectStore("variantes", { keyPath: "id" }).createIndex("porProducto", "productoId");
-      db.createObjectStore("presupuestos", { keyPath: "id" }).createIndex("porCliente", "clienteId");
-      const items = db.createObjectStore("items", { keyPath: "id" });
-      items.createIndex("porPresupuesto", "presupuestoId");
-      items.createIndex("porVariante", "varianteId");
+  // Como las migraciones de Postgres: cada versión añade lo suyo y solo se
+  // aplica lo que le falte a la base de datos del visitante (oldVersion).
+  const db: IDBPDatabase<EsquemaDemo> = await openDB<EsquemaDemo>(nombreBd, VERSION_BD, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        db.createObjectStore("ajustes");
+        db.createObjectStore("meta");
+        db.createObjectStore("clientes", { keyPath: "id" });
+        db.createObjectStore("productos", { keyPath: "id" });
+        db.createObjectStore("variantes", { keyPath: "id" }).createIndex("porProducto", "productoId");
+        db.createObjectStore("presupuestos", { keyPath: "id" }).createIndex("porCliente", "clienteId");
+        const items = db.createObjectStore("items", { keyPath: "id" });
+        items.createIndex("porPresupuesto", "presupuestoId");
+        items.createIndex("porVariante", "varianteId");
+      }
+      if (oldVersion < 2) {
+        db.createObjectStore("tasas", { keyPath: "id" }).createIndex("porPar", ["monedaOrigen", "monedaDestino"]);
+      }
     },
   });
 
@@ -141,6 +153,30 @@ export async function crearRepositorioNavegador({
         await tx.store.put(nuevos, CLAVE_AJUSTES);
         await tx.done;
         return sinContador(nuevos);
+      },
+    },
+
+    tasas: {
+      async listar() {
+        return (await db.getAll("tasas")).sort(compararTasas);
+      },
+      async registrar(datos) {
+        validarTasa(datos);
+        const tasa: Tasa = {
+          id: nuevoId(),
+          monedaOrigen: datos.monedaOrigen,
+          monedaDestino: datos.monedaDestino,
+          valor: datos.valor,
+          fuente: datos.fuente ?? "manual",
+          fecha: datos.fecha ?? hoy(),
+          creadoEn: ahora(),
+        };
+        await db.add("tasas", tasa);
+        return tasa;
+      },
+      async ultima(monedaOrigen, monedaDestino) {
+        const tasas = await db.getAllFromIndex("tasas", "porPar", [monedaOrigen, monedaDestino]);
+        return tasas.sort(compararTasas)[0] ?? null;
       },
     },
 

@@ -150,7 +150,13 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      líneas en una transacción y solo edita borradores. Cubierto en `rls.sql`.
    - Next 16 conserva las páginas ocultas al navegar (`<Activity>`): el editor
      se reinicia tras crear, y las rutas con `[id]` usan `<Suspense>`.
-6. Multimoneda y tasa BCV.
+6. ✅ Multimoneda y tasa BCV.
+   - `tasas` en el repositorio (historial, registrar, última por par). En la
+     demo, IndexedDB pasa a la versión 2 sin perder datos (con test).
+   - `/api/tasas/bcv`: el servidor consulta ve.dolarapi.com (exige sesión, valida
+     la respuesta, timeout de 8 s). En la demo, tasas fijas de ejemplo.
+   - Ajustes: historial, alta manual y "Traer tasa BCV" sin duplicados.
+   - Editor: propone la última tasa del par y, para VES, "Usar BCV de hoy".
 7. Despliegue en Vercel (versión real y demo).
    - SMTP propio (p. ej. Resend): el correo por defecto de Supabase solo envía
      a miembros del equipo del proyecto.

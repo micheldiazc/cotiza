@@ -201,6 +201,38 @@ export function probarContrato(nombre: string, crearRepo: () => Promise<Reposito
       });
     });
 
+    describe("tasas", () => {
+      it("registra y devuelve la última por par de monedas", async () => {
+        await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 880, fecha: "2026-10-01" });
+        await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 888.89, fecha: "2026-10-29", fuente: "bcv" });
+        await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 850, fecha: "2026-09-15" });
+        await repo.tasas.registrar({ monedaOrigen: "EUR", monedaDestino: "VES", valor: 989.39, fecha: "2026-10-29" });
+
+        expect(await repo.tasas.ultima("USD", "VES")).toMatchObject({ valor: 888.89, fuente: "bcv" });
+        expect(await repo.tasas.ultima("EUR", "VES")).toMatchObject({ valor: 989.39, fuente: "manual" });
+        expect(await repo.tasas.ultima("USD", "COP")).toBeNull();
+        expect((await repo.tasas.listar()).map((t) => t.fecha)).toEqual([
+          "2026-10-29",
+          "2026-10-29",
+          "2026-10-01",
+          "2026-09-15",
+        ]);
+      });
+
+      it("a igual fecha gana la última registrada", async () => {
+        await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 1, fecha: "2026-10-29" });
+        await new Promise((r) => setTimeout(r, 5));
+        await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 2, fecha: "2026-10-29" });
+        expect((await repo.tasas.ultima("USD", "VES"))?.valor).toBe(2);
+      });
+
+      it("valida monedas y valor", async () => {
+        await esperarError(repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "USD", valor: 1 }), "validacion");
+        await esperarError(repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 0 }), "validacion");
+        await esperarError(repo.tasas.registrar({ monedaOrigen: "usd", monedaDestino: "VES", valor: 1 }), "validacion");
+      });
+    });
+
     describe("ajustes", () => {
       it("devuelve valores por defecto y guarda cambios parciales", async () => {
         expect((await repo.ajustes.obtener()).monedaBase).toBe("USD");

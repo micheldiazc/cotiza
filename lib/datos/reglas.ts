@@ -2,7 +2,15 @@
 // usan, así la demo se comporta igual que la versión real. La base de datos
 // repite algunas (checks, FK) como última barrera.
 
-import type { DatosCliente, DatosItem, DatosPresupuesto, DatosVariante, EstadoPresupuesto } from "./tipos";
+import type {
+  DatosCliente,
+  DatosItem,
+  DatosPresupuesto,
+  DatosTasa,
+  DatosVariante,
+  EstadoPresupuesto,
+  Tasa,
+} from "./tipos";
 
 export type CodigoError =
   | "validacion"
@@ -118,6 +126,17 @@ export function validarVariante(datos: Partial<DatosVariante>, esNueva: boolean)
   if (esNueva || datos.precio !== undefined) {
     exigir(Number.isFinite(datos.precio) && datos.precio! >= 0, "El precio no puede ser negativo.");
   }
+}
+
+export function validarTasa(datos: DatosTasa) {
+  exigir(esMoneda(datos.monedaOrigen) && esMoneda(datos.monedaDestino), "Las monedas deben ser códigos de 3 letras.");
+  exigir(datos.monedaOrigen !== datos.monedaDestino, "Elige dos monedas distintas.");
+  exigir(Number.isFinite(datos.valor) && datos.valor > 0, "La tasa debe ser mayor que 0.");
+}
+
+/** Orden de las tasas: la fecha más reciente primero; a igual fecha, la última registrada. */
+export function compararTasas(a: Pick<Tasa, "fecha" | "creadoEn">, b: Pick<Tasa, "fecha" | "creadoEn">) {
+  return b.fecha.localeCompare(a.fecha) || b.creadoEn.localeCompare(a.creadoEn);
 }
 
 export function validarPresupuesto(datos: DatosPresupuesto) {

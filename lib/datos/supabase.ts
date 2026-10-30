@@ -10,9 +10,11 @@ import {
   comprobarEditable,
   comprobarTransicion,
   ErrorDatos,
+  hoy,
   validarCliente,
   validarNombre,
   validarPresupuesto,
+  validarTasa,
   validarVariante,
 } from "./reglas";
 import type { Repositorio } from "./repositorio";
@@ -21,10 +23,12 @@ import type {
   Cliente,
   DatosPresupuesto,
   EstadoPresupuesto,
+  FuenteTasa,
   ItemPresupuesto,
   Presupuesto,
   PresupuestoResumen,
   Producto,
+  Tasa,
   Variante,
 } from "./tipos";
 
@@ -40,6 +44,16 @@ interface FilaAjustes {
   direccion: string | null;
   moneda_base: string;
   iva_porcentaje: Num;
+}
+
+interface FilaTasa {
+  id: string;
+  moneda_origen: string;
+  moneda_destino: string;
+  valor: Num;
+  fuente: FuenteTasa;
+  fecha: string;
+  created_at: string;
 }
 
 interface FilaCliente {
@@ -111,6 +125,16 @@ const aAjustes = (f: FilaAjustes): AjustesNegocio => ({
   direccion: f.direccion,
   monedaBase: f.moneda_base,
   ivaPorcentaje: Number(f.iva_porcentaje),
+});
+
+const aTasa = (f: FilaTasa): Tasa => ({
+  id: f.id,
+  monedaOrigen: f.moneda_origen,
+  monedaDestino: f.moneda_destino,
+  valor: Number(f.valor),
+  fuente: f.fuente,
+  fecha: f.fecha,
+  creadoEn: f.created_at,
 });
 
 const aCliente = (f: FilaCliente): Cliente => ({
@@ -299,6 +323,48 @@ export function crearRepositorioSupabase(): Repositorio {
           .single();
         comprobar(error);
         return aAjustes(data!);
+      },
+    },
+
+    tasas: {
+      async listar() {
+        const { data, error } = await supabase
+          .from("tasas")
+          .select("*")
+          .order("fecha", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(100);
+        comprobar(error);
+        return (data ?? []).map(aTasa);
+      },
+      async registrar(datos) {
+        validarTasa(datos);
+        const { data, error } = await supabase
+          .from("tasas")
+          .insert({
+            moneda_origen: datos.monedaOrigen,
+            moneda_destino: datos.monedaDestino,
+            valor: datos.valor,
+            fuente: datos.fuente ?? "manual",
+            fecha: datos.fecha ?? hoy(),
+          })
+          .select()
+          .single();
+        comprobar(error);
+        return aTasa(data!);
+      },
+      async ultima(monedaOrigen, monedaDestino) {
+        const { data, error } = await supabase
+          .from("tasas")
+          .select("*")
+          .eq("moneda_origen", monedaOrigen)
+          .eq("moneda_destino", monedaDestino)
+          .order("fecha", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        comprobar(error);
+        return data ? aTasa(data) : null;
       },
     },
 

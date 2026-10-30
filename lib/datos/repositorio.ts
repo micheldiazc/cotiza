@@ -10,11 +10,13 @@ import type {
   DatosCliente,
   DatosPresupuesto,
   DatosProducto,
+  DatosTasa,
   DatosVariante,
   EstadoPresupuesto,
   Presupuesto,
   PresupuestoResumen,
   Producto,
+  Tasa,
   Variante,
 } from "./tipos";
 
@@ -22,6 +24,14 @@ export interface Repositorio {
   ajustes: {
     obtener(): Promise<AjustesNegocio>;
     guardar(datos: Partial<AjustesNegocio>): Promise<AjustesNegocio>;
+  };
+
+  tasas: {
+    /** Historial, de la más reciente a la más antigua. */
+    listar(): Promise<Tasa[]>;
+    registrar(datos: DatosTasa): Promise<Tasa>;
+    /** La más reciente para ese par de monedas, o null si no hay ninguna. */
+    ultima(monedaOrigen: string, monedaDestino: string): Promise<Tasa | null>;
   };
 
   clientes: {

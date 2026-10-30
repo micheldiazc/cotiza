@@ -1,6 +1,7 @@
 // fake-indexeddb implementa IndexedDB en memoria para que los tests corran en
 // Node, sin navegador.
 import "fake-indexeddb/auto";
+import { openDB } from "idb";
 import { describe, expect, it } from "vitest";
 import { crearRepositorioNavegador } from "../navegador";
 import { probarContrato } from "./contrato";
@@ -19,6 +20,7 @@ describe("modo demo", () => {
     expect((await repo.ajustes.obtener()).nombreNegocio).toBe("Estudio Lumen");
     expect(await repo.clientes.listar()).toHaveLength(6);
     expect(presupuestos).toHaveLength(8);
+    expect((await repo.tasas.ultima("USD", "VES"))?.valor).toBe(880);
     expect(new Set(presupuestos.map((p) => p.estado))).toEqual(
       new Set(["borrador", "enviado", "aceptado", "rechazado"]),
     );
@@ -32,6 +34,33 @@ describe("modo demo", () => {
 
     const segunda = await crearRepositorioNavegador({ nombreBd });
     expect(await segunda.clientes.obtener(cliente.id)).toMatchObject({ nombre: "Cambiado por el visitante" });
+  });
+
+  it("actualiza una base de datos de la versión 1 sin perder los datos del visitante", async () => {
+    const nombreBd = `v1-${crypto.randomUUID()}`;
+    // Así estaba el esquema antes de añadir las tasas.
+    const v1 = await openDB(nombreBd, 1, {
+      upgrade(db) {
+        db.createObjectStore("ajustes");
+        db.createObjectStore("meta");
+        db.createObjectStore("clientes", { keyPath: "id" });
+        db.createObjectStore("productos", { keyPath: "id" });
+        db.createObjectStore("variantes", { keyPath: "id" }).createIndex("porProducto", "productoId");
+        db.createObjectStore("presupuestos", { keyPath: "id" }).createIndex("porCliente", "clienteId");
+        const items = db.createObjectStore("items", { keyPath: "id" });
+        items.createIndex("porPresupuesto", "presupuestoId");
+        items.createIndex("porVariante", "varianteId");
+      },
+    });
+    await v1.put("clientes", { id: "c1", nombre: "Cliente de antes", creadoEn: "", actualizadoEn: "" });
+    await v1.put("meta", true, "sembrado");
+    v1.close();
+
+    const repo = await crearRepositorioNavegador({ nombreBd });
+
+    expect(await repo.clientes.obtener("c1")).toMatchObject({ nombre: "Cliente de antes" });
+    await repo.tasas.registrar({ monedaOrigen: "USD", monedaDestino: "VES", valor: 880 });
+    expect((await repo.tasas.ultima("USD", "VES"))?.valor).toBe(880);
   });
 
   it("restablecer vuelve a los datos de ejemplo", async () => {
