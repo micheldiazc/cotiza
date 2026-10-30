@@ -175,3 +175,68 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      `/auth/confirm` ya lo admite).
    - Reactivar "Confirm email" y probar el enlace de confirmación.
    - Actualizar Site URL y Redirect URLs con el dominio de Vercel.
+
+## Próxima sesión: etapa 8 — panel de control y marca
+
+### 8.1 Panel de control (inspirado en el de Davisart)
+
+Hoy `/panel` es un resumen provisional (contadores y lista). Davisart tenía un
+"Panel de Control" con tarjetas de métricas y las últimas cotizaciones. Propuesta:
+
+- Cabecera: "Panel", nombre del negocio debajo y botón "Nuevo presupuesto".
+- Tarjetas (KPI), con icono y color propio cada una:
+  - **Ventas aceptadas**: suma de los presupuestos aceptados en moneda base.
+  - **Presupuestos emitidos**: total (sin contar borradores).
+  - **Pendientes de respuesta**: los enviados.
+  - **Tasa de aceptación**: aceptados / (aceptados + rechazados). Es el extra
+    "dashboard" del plan y Davisart no la tenía.
+- "Últimos presupuestos": los 5 más recientes con estado, total y enlace, más
+  "Ver todos".
+- Opcional (a decidir): gráfico de ventas aceptadas de los últimos 6 meses.
+- Las métricas en una función pura `calcularMetricas()` con tests (igual que
+  las demás reglas), así funcionan igual en la demo y en la versión real.
+- Iconos con `lucide-react` (ya instalado), como en Davisart.
+
+### 8.2 Aspecto general (lo que cambió respecto a Davisart)
+
+Michel nota que la app cambió bastante respecto a Davisart. Diferencias
+visibles para decidir qué recuperar:
+
+| Davisart | Cotiza hoy |
+| --- | --- |
+| Marca en negrita en la barra ("DAVISART") | "Cotiza" en texto normal |
+| Iconos en botones y tarjetas | Casi sin iconos |
+| Color de acento verde en acciones principales | Todo en negro/gris |
+| "+ Nuevo Presupuesto" directo en el menú | Solo desde Presupuestos |
+| Tarjetas de color por estado | Etiquetas de color solo en listados |
+
+Decidir mañana: color de acento, iconos y si "Nuevo presupuesto" va en el menú.
+
+### 8.3 Marca de Cotiza y créditos
+
+Dos cosas distintas que no hay que mezclar:
+
+1. **Marca de Cotiza / créditos de la autora** (lo de mañana):
+   - Logo de Cotiza en la cabecera, la portada y como favicon (hoy es el de Next).
+   - Pie de página en la app: "Cotiza · desarrollado por Michel Díaz" con
+     enlaces a GitHub y al portafolio.
+   - En el PDF: línea discreta "Generado con Cotiza" en el pie.
+   - Solo en la demo: marca de agua "DEMO" en diagonal en el PDF, para que un
+     PDF de la demo no se confunda con un presupuesto real.
+   - Limpiar los SVG de ejemplo de Next que siguen en `public/`.
+2. **Marca del negocio que usa la app** (extra 1 del plan, otro día): que cada
+   usuario suba SU logo y colores para sus PDF.
+
+**Qué traer mañana:**
+- El logo: mejor en **SVG**; si no, **PNG cuadrado de 512 px o más con fondo
+  transparente**. Si es posible, una versión que se vea bien en pequeño (favicon).
+- El texto exacto de los créditos (nombre como quieres que aparezca y enlaces).
+- Decidir: ¿marca de agua "DEMO" en los PDF de la demo? ¿gráfico de ventas?
+
+### Orden propuesto para mañana
+
+1. Decisiones de 8.2 (colores, iconos, menú) y el logo.
+2. Panel de control con métricas y tests (8.1).
+3. Logo, favicon, pie de página y créditos en el PDF (8.3).
+4. Probar en la demo, commit, push (Vercel vuelve a publicar solo) y revisar
+   la demo en producción.
