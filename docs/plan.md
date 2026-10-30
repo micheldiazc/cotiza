@@ -157,7 +157,16 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      la respuesta, timeout de 8 s). En la demo, tasas fijas de ejemplo.
    - Ajustes: historial, alta manual y "Traer tasa BCV" sin duplicados.
    - Editor: propone la última tasa del par y, para VES, "Usar BCV de hoy".
-7. Despliegue en Vercel (versión real y demo).
+7. ✅ Publicación de la demo.
+   - Código público en https://github.com/micheldiazc/cotiza (commits con el
+     correo noreply de GitHub).
+   - Demo en Vercel: https://cotiza-demo-iota.vercel.app, proyecto `cotiza-demo`
+     con una sola variable, `NEXT_PUBLIC_DEMO_MODE=true` (Production y Preview).
+     Verificado en producción: ninguna petición ni código de Supabase.
+   - La versión real NO se publica por ahora: sin SMTP y con "Confirm email"
+     desactivado, cualquiera podría registrarse en el proyecto de Supabase.
+     Si se publica más adelante, hace falta lo de abajo (o desactivar los
+     registros en Supabase para que solo entre la dueña):
    - SMTP propio (p. ej. Resend): el correo por defecto de Supabase solo envía
      a miembros del equipo del proyecto.
    - Plantilla "Confirm signup" en español con

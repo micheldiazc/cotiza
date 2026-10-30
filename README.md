@@ -3,7 +3,7 @@
 Gestor de presupuestos para pequeños negocios: clientes, catálogo con variantes,
 presupuestos con estados y PDF, y multimoneda con la tasa oficial del BCV.
 
-**[Probar la demo](#demo)** · sin registro, con datos de ejemplo de un negocio ficticio.
+**[Probar la demo →](https://cotiza-demo-iota.vercel.app)** · sin registro, con datos de ejemplo de un negocio ficticio.
 
 ## Qué hace
 
