@@ -8,6 +8,12 @@
       "port": 3000
     },
     {
+      "name": "cotiza-demo-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:demo"],
+      "port": 3000
+    },
+    {
       "name": "cotiza-demo-build",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["next", "start", "-p", "3002"],

@@ -136,7 +136,11 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      los ítems). Pasarlo a una función de Postgres (`rpc`) con transacción.
    - **Pendiente (etapa 4):** probar el repositorio de Supabase con sesión real
      al construir las pantallas.
-4. Clientes y catálogo.
+4. ✅ Clientes, catálogo y ajustes del negocio.
+   - Zona privada `app/(app)/` con cabecera y menú comunes.
+   - Formularios en ventana modal; avisos con sonner; borrados con confirmación.
+   - Probado en la demo: crear/editar/borrar, reglas de borrado, búsqueda sin
+     tildes, precios "1.234,50", productos inactivos y persistencia al recargar.
 5. Presupuestos, estados y PDF.
 6. Multimoneda y tasa BCV.
 7. Despliegue en Vercel (versión real y demo).
