@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Navegacion } from "@/components/navegacion";
 import { Button } from "@/components/ui/button";
 import { MODO_DEMO } from "@/lib/modo";
@@ -15,7 +16,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link href="/panel" className="text-lg font-semibold tracking-tight">
               Cotiza
             </Link>
-            <Navegacion />
+            {/* usePathname depende de la URL: en rutas con [id] solo se conoce al pedir la página. */}
+            <Suspense fallback={<nav aria-label="Principal" className="h-8" />}>
+              <Navegacion />
+            </Suspense>
           </div>
           {!MODO_DEMO && (
             <form action={cerrarSesion}>

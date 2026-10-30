@@ -48,6 +48,24 @@ export function calcularTotales(
   return { subtotal, descuento, baseImponible, iva, total: redondear(baseImponible + iva) };
 }
 
+/**
+ * Precios en la moneda del presupuesto: cada precio unitario se convierte con
+ * la tasa y se redondea a céntimos ANTES de calcular. Así lo que ve el cliente
+ * (precio x cantidad = importe, y la suma de importes) cuadra al céntimo.
+ */
+export function convertirItems<T extends Pick<DatosItem, "cantidad" | "precioUnitario">>(items: T[], tasa: number): T[] {
+  return items.map((item) => ({ ...item, precioUnitario: redondear(item.precioUnitario * tasa) }));
+}
+
+export function totalesEnMoneda(
+  items: Pick<DatosItem, "cantidad" | "precioUnitario">[],
+  descuentoPorcentaje: number,
+  ivaPorcentaje: number,
+  tasa: number,
+): Totales {
+  return calcularTotales(convertirItems(items, tasa), descuentoPorcentaje, ivaPorcentaje);
+}
+
 // --- Estados -----------------------------------------------------------------
 
 const TRANSICIONES: Record<EstadoPresupuesto, EstadoPresupuesto[]> = {
@@ -122,8 +140,14 @@ export function validarPresupuesto(datos: DatosPresupuesto) {
   }
 }
 
+/** AAAA-MM-DD en la zona horaria del usuario (toISOString daría la fecha UTC). */
+export function fechaLocal(fecha: Date): string {
+  const dos = (n: number) => String(n).padStart(2, "0");
+  return `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}`;
+}
+
 export function hoy(): string {
-  return new Date().toISOString().slice(0, 10);
+  return fechaLocal(new Date());
 }
 
 /** P-0001, P-0042... */

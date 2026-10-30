@@ -131,17 +131,25 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
      IndexedDB en memoria (fake-indexeddb).
    - Verificado: el build demo no contiene la URL ni la clave de Supabase ni su
      cliente; el build real no contiene el código ni los datos de la demo.
-   - **Pendiente (etapa 5):** en Supabase, crear/actualizar un presupuesto con
-     sus ítems son varias peticiones (no atómico; hay compensación si fallan
-     los ítems). Pasarlo a una función de Postgres (`rpc`) con transacción.
-   - **Pendiente (etapa 4):** probar el repositorio de Supabase con sesión real
-     al construir las pantallas.
+   - Resuelto en la etapa 5: guardar presupuesto + líneas es atómico en Supabase
+     (función `guardar_presupuesto`).
+   - Resuelto en la etapa 4: repositorio de Supabase probado con sesión real.
 4. ✅ Clientes, catálogo y ajustes del negocio.
    - Zona privada `app/(app)/` con cabecera y menú comunes.
    - Formularios en ventana modal; avisos con sonner; borrados con confirmación.
    - Probado en la demo: crear/editar/borrar, reglas de borrado, búsqueda sin
      tildes, precios "1.234,50", productos inactivos y persistencia al recargar.
-5. Presupuestos, estados y PDF.
+5. ✅ Presupuestos, estados y PDF.
+   - Listado con filtro por estado, editor a página completa (líneas del
+     catálogo o libres, totales en vivo, moneda y tasa) y ficha con acciones
+     según el estado.
+   - PDF con jsPDF en el navegador (se carga solo al pulsar el botón).
+   - Precios en moneda base; en otra moneda se convierte cada precio unitario
+     y se redondea antes de calcular, para que el PDF cuadre al céntimo.
+   - `guardar_presupuesto` (Postgres, security invoker): crea/actualiza con sus
+     líneas en una transacción y solo edita borradores. Cubierto en `rls.sql`.
+   - Next 16 conserva las páginas ocultas al navegar (`<Activity>`): el editor
+     se reinicia tras crear, y las rutas con `[id]` usan `<Suspense>`.
 6. Multimoneda y tasa BCV.
 7. Despliegue en Vercel (versión real y demo).
    - SMTP propio (p. ej. Resend): el correo por defecto de Supabase solo envía

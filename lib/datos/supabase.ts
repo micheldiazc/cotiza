@@ -221,13 +221,20 @@ export function crearRepositorioSupabase(): Repositorio {
     return data ? Number(data.iva_porcentaje) : 0;
   }
 
-  async function prepararPresupuesto(datos: DatosPresupuesto) {
+  /**
+   * Crea (id = null) o actualiza un presupuesto con sus líneas en una sola
+   * transacción, mediante la función de Postgres guardar_presupuesto
+   * (supabase/migrations/…_guardar_presupuesto_atomico.sql). Devuelve el id.
+   */
+  async function guardarPresupuesto(id: string | null, datos: DatosPresupuesto): Promise<string> {
     validarPresupuesto(datos);
     const descuento_porcentaje = datos.descuentoPorcentaje ?? 0;
     const iva_porcentaje = datos.ivaPorcentaje ?? (await ivaPorDefecto());
     const { subtotal, total } = calcularTotales(datos.items, descuento_porcentaje, iva_porcentaje);
-    return {
-      fila: {
+
+    const { data, error } = await supabase.rpc("guardar_presupuesto", {
+      p_id: id,
+      p_presupuesto: {
         cliente_id: datos.clienteId,
         moneda: datos.moneda,
         tasa: datos.tasa,
@@ -235,20 +242,23 @@ export function crearRepositorioSupabase(): Repositorio {
         iva_porcentaje,
         subtotal,
         total,
-        notas: datos.notas,
+        notas: datos.notas ?? null,
         fecha_emision: datos.fechaEmision,
-        fecha_vencimiento: datos.fechaVencimiento,
+        fecha_vencimiento: datos.fechaVencimiento ?? null,
       },
-      items: (presupuestoId: string) =>
-        datos.items.map((item, orden) => ({
-          presupuesto_id: presupuestoId,
-          variante_id: item.varianteId ?? null,
-          descripcion: item.descripcion.trim(),
-          cantidad: item.cantidad,
-          precio_unitario: item.precioUnitario,
-          orden,
-        })),
-    };
+      p_items: datos.items.map((item) => ({
+        variante_id: item.varianteId ?? null,
+        descripcion: item.descripcion.trim(),
+        cantidad: item.cantidad,
+        precio_unitario: item.precioUnitario,
+      })),
+    });
+
+    // La función señala sus errores con el mensaje (raise exception 'no_editable').
+    if (error?.message === "no_encontrado") throw noEncontrado("El presupuesto");
+    if (error?.message === "no_editable") comprobarEditable("enviado");
+    comprobar(error, { fk: noEncontrado("El cliente") });
+    return data as string;
   }
 
   async function obtenerPresupuesto(id: string): Promise<Presupuesto | null> {
@@ -261,7 +271,6 @@ export function crearRepositorioSupabase(): Repositorio {
     return data ? aPresupuesto(data) : null;
   }
 
-  const clienteNoExiste = noEncontrado("El cliente");
 
   return {
     ajustes: {
@@ -418,34 +427,11 @@ export function crearRepositorioSupabase(): Repositorio {
         return (data ?? []).map(aResumen);
       },
       obtener: obtenerPresupuesto,
-      // TODO (etapa 5): presupuesto e ítems van en dos peticiones, así que no es
-      // atómico. Pasar a una función de Postgres (rpc) que lo haga en una transacción.
       async crear(datos) {
-        const { fila, items } = await prepararPresupuesto(datos);
-        const { data: creado, error } = await supabase.from("presupuestos").insert(fila).select("id").single();
-        comprobar(error, { fk: clienteNoExiste });
-
-        const { error: errorItems } = await supabase.from("presupuesto_items").insert(items(creado!.id));
-        if (errorItems) {
-          // Compensación: sin ítems no dejamos un presupuesto a medias.
-          await supabase.from("presupuestos").delete().eq("id", creado!.id);
-          comprobar(errorItems);
-        }
-        return exigirFila(await obtenerPresupuesto(creado!.id), "El presupuesto");
+        return exigirFila(await obtenerPresupuesto(await guardarPresupuesto(null, datos)), "El presupuesto");
       },
       async actualizar(id, datos) {
-        const actual = exigirFila(await obtenerPresupuesto(id), "El presupuesto");
-        comprobarEditable(actual.estado);
-        const { fila, items } = await prepararPresupuesto(datos);
-
-        const { error } = await supabase.from("presupuestos").update(fila).eq("id", id);
-        comprobar(error, { fk: clienteNoExiste });
-        const { error: errorBorrar } = await supabase.from("presupuesto_items").delete().eq("presupuesto_id", id);
-        comprobar(errorBorrar);
-        const { error: errorItems } = await supabase.from("presupuesto_items").insert(items(id));
-        comprobar(errorItems);
-
-        return exigirFila(await obtenerPresupuesto(id), "El presupuesto");
+        return exigirFila(await obtenerPresupuesto(await guardarPresupuesto(id, datos)), "El presupuesto");
       },
       async cambiarEstado(id, estado) {
         const actual = exigirFila(await obtenerPresupuesto(id), "El presupuesto");

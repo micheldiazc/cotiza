@@ -34,4 +34,12 @@ export async function restablecerDemo() {
 
 export type { Repositorio } from "./repositorio";
 export * from "./tipos";
-export { ErrorDatos, formatearNumero } from "./reglas";
+export {
+  calcularTotales,
+  convertirItems,
+  ErrorDatos,
+  formatearNumero,
+  hoy,
+  totalesEnMoneda,
+  transicionPermitida,
+} from "./reglas";

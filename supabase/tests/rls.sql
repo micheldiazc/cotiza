@@ -105,11 +105,81 @@ begin
     raise notice 'ok: B no puede usar variantes de A';
   end;
 
+  -- Usar guardar_presupuesto sobre un presupuesto de A: para B "no existe"
+  begin
+    perform public.guardar_presupuesto(
+      '00000000-0000-4000-b000-0000000000a4',
+      '{"cliente_id": "00000000-0000-4000-b000-0000000000b1", "moneda": "USD", "subtotal": 0, "total": 0}',
+      '[]'
+    );
+    raise exception 'FALLO: B pudo editar un presupuesto de A con guardar_presupuesto';
+  exception when sqlstate 'P0002' then
+    raise notice 'ok: B no puede usar guardar_presupuesto sobre presupuestos de A';
+  end;
+
   -- La numeración es independiente por usuario
   if (select numero from public.presupuestos where id = '00000000-0000-4000-b000-0000000000b4') <> 1 then
     raise exception 'FALLO: el primer presupuesto de B debería ser el 1';
   end if;
   raise notice 'ok: B empieza su numeración en 1';
+end;
+$$;
+
+
+-- Como A: guardar_presupuesto es atómico y respeta el estado --------------------
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-a000-00000000000a", "role": "authenticated"}';
+
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.guardar_presupuesto(
+    null,
+    '{"cliente_id": "00000000-0000-4000-b000-0000000000a1", "moneda": "USD", "subtotal": 30, "total": 30}',
+    '[{"descripcion": "Uno", "cantidad": 1, "precio_unitario": 10},
+      {"descripcion": "Dos", "cantidad": 2, "precio_unitario": 10}]'
+  );
+  if (select numero from public.presupuestos where id = v_id) <> 3
+     or (select string_agg(descripcion, ',' order by orden) from public.presupuesto_items where presupuesto_id = v_id) <> 'Uno,Dos' then
+    raise exception 'FALLO: guardar_presupuesto no creó bien el presupuesto 3 con sus líneas';
+  end if;
+
+  perform public.guardar_presupuesto(
+    v_id,
+    '{"cliente_id": "00000000-0000-4000-b000-0000000000a1", "moneda": "USD", "subtotal": 5, "total": 5}',
+    '[{"descripcion": "Solo una", "cantidad": 1, "precio_unitario": 5}]'
+  );
+  if (select count(*) from public.presupuesto_items where presupuesto_id = v_id) <> 1 then
+    raise exception 'FALLO: al editar no se sustituyeron las líneas';
+  end if;
+
+  -- Una línea inválida deshace TODO (atomicidad): el presupuesto no cambia.
+  begin
+    perform public.guardar_presupuesto(
+      v_id,
+      '{"cliente_id": "00000000-0000-4000-b000-0000000000a1", "moneda": "USD", "subtotal": 99, "total": 99}',
+      '[{"descripcion": "Bien", "cantidad": 1, "precio_unitario": 99},
+        {"descripcion": "Mal", "cantidad": -1, "precio_unitario": 1}]'
+    );
+    raise exception 'FALLO: se aceptó una línea con cantidad negativa';
+  exception when check_violation then
+    if (select total from public.presupuestos where id = v_id) <> 5
+       or (select count(*) from public.presupuesto_items where presupuesto_id = v_id) <> 1 then
+      raise exception 'FALLO: un error a mitad dejó el presupuesto a medias';
+    end if;
+  end;
+
+  update public.presupuestos set estado = 'enviado' where id = v_id;
+  begin
+    perform public.guardar_presupuesto(v_id, '{"cliente_id": "00000000-0000-4000-b000-0000000000a1", "moneda": "USD", "subtotal": 0, "total": 0}', '[]');
+    raise exception 'FALLO: se pudo editar un presupuesto enviado';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'no_editable' then raise; end if;
+  end;
+
+  -- Deja a A con sus 2 presupuestos originales para la comprobación final.
+  delete from public.presupuestos where id = v_id;
+  raise notice 'ok: guardar_presupuesto crea, sustituye líneas, es atómico y respeta el estado';
 end;
 $$;
 

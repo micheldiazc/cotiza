@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const ENLACES = [
   { href: "/panel", texto: "Panel" },
+  { href: "/presupuestos", texto: "Presupuestos" },
   { href: "/clientes", texto: "Clientes" },
   { href: "/catalogo", texto: "Catálogo" },
   { href: "/ajustes", texto: "Ajustes" },

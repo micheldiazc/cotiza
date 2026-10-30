@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatearNumero, obtenerRepositorio, type PresupuestoResumen } from "@/lib/datos";
 
@@ -52,7 +53,9 @@ export function ResumenDatos() {
         <ul className="divide-y rounded-lg border">
           {resumen.presupuestos.map((p) => (
             <li key={p.id} className="flex items-center justify-between gap-4 px-4 py-2 text-sm">
-              <span className="font-mono">{formatearNumero(p.numero)}</span>
+              <Link href={`/presupuestos/${p.id}`} className="font-mono underline-offset-4 hover:underline">
+                {formatearNumero(p.numero)}
+              </Link>
               <span className="flex-1 truncate">{p.clienteNombre}</span>
               <span className="text-zinc-500">{p.estado}</span>
               <span className="tabular-nums">

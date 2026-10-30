@@ -4,13 +4,14 @@
 // Se cargan con la propia API del repositorio, así pasan por las mismas
 // validaciones y reglas que los datos que crea un visitante.
 
+import { fechaLocal } from "../reglas";
 import type { Repositorio } from "../repositorio";
 import type { EstadoPresupuesto } from "../tipos";
 
 function haceDias(dias: number): string {
   const fecha = new Date();
   fecha.setDate(fecha.getDate() - dias);
-  return fecha.toISOString().slice(0, 10);
+  return fechaLocal(fecha);
 }
 
 function enDias(desde: string, dias: number): string {
