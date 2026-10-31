@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { coincide, formatearDinero, formatearFecha, formatearNumero, normalizar } from "../formato";
+import {
+  coincide,
+  formatearDinero,
+  formatearDineroCorto,
+  formatearFecha,
+  formatearNumero,
+  normalizar,
+} from "../formato";
 
 describe("formatearDinero", () => {
   it("usa coma decimal y punto de miles", () => {
@@ -8,6 +15,13 @@ describe("formatearDinero", () => {
 
   it("no falla con un código de moneda desconocido", () => {
     expect(formatearDinero(10, "XYZ")).toContain("10,00");
+  });
+});
+
+describe("formatearDineroCorto", () => {
+  it("redondea en lugar de cortar los decimales", () => {
+    expect(formatearDineroCorto(498.8, "USD")).toContain("499");
+    expect(formatearDineroCorto(1620.4, "USD")).toContain("1.620");
   });
 });
 

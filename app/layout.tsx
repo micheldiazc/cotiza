@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AvisoDemo } from "@/components/aviso-demo";
+import { PiePagina } from "@/components/pie-pagina";
 import { Toaster } from "@/components/ui/sonner";
 import { MODO_DEMO } from "@/lib/modo";
 import "./globals.css";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {MODO_DEMO && <AvisoDemo />}
         {children}
+        <PiePagina />
         <Toaster richColors position="bottom-right" />
       </body>
     </html>

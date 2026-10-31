@@ -176,7 +176,7 @@ Todas las tablas incluyen `id`, `user_id`, `created_at`.
    - Reactivar "Confirm email" y probar el enlace de confirmación.
    - Actualizar Site URL y Redirect URLs con el dominio de Vercel.
 
-## Próxima sesión: etapa 8 — panel de control y marca
+## Etapa 8 ✅ — panel de control y marca
 
 ### 8.1 Panel de control (inspirado en el de Davisart)
 
@@ -227,16 +227,21 @@ Dos cosas distintas que no hay que mezclar:
 2. **Marca del negocio que usa la app** (extra 1 del plan, otro día): que cada
    usuario suba SU logo y colores para sus PDF.
 
-**Qué traer mañana:**
-- El logo: mejor en **SVG**; si no, **PNG cuadrado de 512 px o más con fondo
-  transparente**. Si es posible, una versión que se vea bien en pequeño (favicon).
-- El texto exacto de los créditos (nombre como quieres que aparezca y enlaces).
-- Decidir: ¿marca de agua "DEMO" en los PDF de la demo? ¿gráfico de ventas?
+### Resultado (30/10/2026)
 
-### Orden propuesto para mañana
+Decisiones de Michel: su logo M como **firma de autora** (no como logo de Cotiza),
+marca de agua DEMO, gráfico de ventas y **violeta de su marca** (`#5b3fd1`) como
+color de acento.
 
-1. Decisiones de 8.2 (colores, iconos, menú) y el logo.
-2. Panel de control con métricas y tests (8.1).
-3. Logo, favicon, pie de página y créditos en el PDF (8.3).
-4. Probar en la demo, commit, push (Vercel vuelve a publicar solo) y revisar
-   la demo en producción.
+- Panel de control: 4 tarjetas (ventas aceptadas, emitidos, pendientes, tasa de
+  aceptación), gráfico de barras CSS de 6 meses (por mes de emisión) y últimos
+  presupuestos. Métricas en `lib/metricas.ts` con tests.
+- Datos de ejemplo ampliados a 14 presupuestos repartidos en 5 meses.
+- Cabecera: "Cotiza" en negrita, menú con iconos (lucide) y botón fijo
+  "Nuevo presupuesto". `--primary` de shadcn en violeta.
+- Pie de página en todas las páginas: "Cotiza · Desarrollado por [M] Michel Díaz
+  Cabrera" (enlace al portafolio) y "Código en GitHub". Datos en `lib/creditos.ts`.
+- PDF: la M dibujada con jsPDF en el pie + "Generado con Cotiza · desarrollado
+  por Michel Díaz Cabrera"; en la demo, "DEMO" en diagonal al 7 % de opacidad.
+- Favicon propio de Cotiza (`app/icon.svg`); fuera los SVG de ejemplo de Next.
+- Pendiente para otro día: que cada negocio suba su propio logo para sus PDF.

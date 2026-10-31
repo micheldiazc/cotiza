@@ -12,6 +12,17 @@ export function formatearDinero(valor: number, moneda: string): string {
   }
 }
 
+/** Sin decimales, redondeando: para etiquetas de gráficos ("USD 499"). */
+export function formatearDineroCorto(valor: number, moneda: string): string {
+  try {
+    return new Intl.NumberFormat(LOCALE, { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(
+      valor,
+    );
+  } catch {
+    return `${formatearNumero(valor, 0)} ${moneda}`;
+  }
+}
+
 export function formatearNumero(valor: number, decimales = 2): string {
   return new Intl.NumberFormat(LOCALE, {
     minimumFractionDigits: decimales,

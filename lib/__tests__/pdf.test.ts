@@ -65,4 +65,16 @@ describe("generarPdf", () => {
     expect(pdf).toContain("4.228,20");
     expect(doc.getNumberOfPages()).toBe(1);
   });
+
+  it("firma el pie con los créditos de la autora", async () => {
+    const pdf = (await generarPdf({ presupuesto, cliente, ajustes })).output();
+    expect(pdf).toContain("Generado con Cotiza · desarrollado por Michel Díaz Cabrera");
+  });
+
+  it("pone la marca de agua DEMO solo cuando se pide", async () => {
+    const conMarca = (await generarPdf({ presupuesto, cliente, ajustes, marcaDeAgua: true })).output();
+    const sinMarca = (await generarPdf({ presupuesto, cliente, ajustes, marcaDeAgua: false })).output();
+    expect(conMarca).toContain("(DEMO) Tj");
+    expect(sinMarca).not.toContain("(DEMO) Tj");
+  });
 });

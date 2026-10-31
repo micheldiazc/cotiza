@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Favicon de Cotiza: un presupuesto (hoja con líneas y total) sobre el violeta de la marca. -->
+  <rect width="64" height="64" rx="14" fill="#5b3fd1"/>
+  <path d="M19 12h19l9 9v31a2 2 0 0 1-2 2H19a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z" fill="#ffffff"/>
+  <path d="M38 12v9h9" fill="#d9d0f7"/>
+  <rect x="23" y="26" width="18" height="3" rx="1.5" fill="#a99bd6"/>
+  <rect x="23" y="33" width="18" height="3" rx="1.5" fill="#a99bd6"/>
+  <rect x="31" y="43" width="10" height="4" rx="2" fill="#5b3fd1"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- M de nodos · Michel Díaz Cabrera -->
+  <polyline points="12,50 12,14 32,38 52,14 52,50" fill="none" stroke="#a99bd6" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="12" cy="50" r="5.5" fill="#f7f6fa" stroke="#5b3fd1" stroke-width="3"/>
+  <circle cx="12" cy="14" r="5.5" fill="#f7f6fa" stroke="#5b3fd1" stroke-width="3"/>
+  <circle cx="32" cy="38" r="5.5" fill="#f7f6fa" stroke="#5b3fd1" stroke-width="3"/>
+  <circle cx="52" cy="14" r="5.5" fill="#f7f6fa" stroke="#5b3fd1" stroke-width="3"/>
+  <circle cx="52" cy="50" r="7.5" fill="#5b3fd1"/>
+</svg>

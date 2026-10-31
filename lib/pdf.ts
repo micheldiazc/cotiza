@@ -11,12 +11,32 @@ import {
   type Cliente,
   type Presupuesto,
 } from "@/lib/datos";
+import { AUTORA } from "@/lib/creditos";
 import { formatearDinero, formatearFecha, formatearNumero } from "@/lib/formato";
 
 export interface DatosPdf {
   presupuesto: Presupuesto;
   cliente: Cliente | null;
   ajustes: AjustesNegocio;
+  /** "DEMO" en diagonal. Por defecto, solo en el build de la demo. */
+  marcaDeAgua?: boolean;
+}
+
+/**
+ * La "M de nodos" de la autora, dibujada con líneas y círculos (mismas
+ * coordenadas que su SVG de 64x64) en un cuadrado de `lado` mm.
+ */
+function dibujarFirma(doc: jsPDF, x: number, y: number, lado: number) {
+  const e = lado / 64;
+  const p = (px: number, py: number): [number, number] => [x + px * e, y + py * e];
+  const puntos: [number, number][] = [p(12, 50), p(12, 14), p(32, 38), p(52, 14), p(52, 50)];
+
+  doc.setLineWidth(3 * e).setDrawColor(169, 155, 214).setLineJoin("round");
+  for (let i = 1; i < puntos.length; i++) doc.line(...puntos[i - 1], ...puntos[i]);
+
+  doc.setDrawColor(91, 63, 209).setFillColor(247, 246, 250);
+  for (const punto of puntos.slice(0, 4)) doc.circle(...punto, 5.5 * e, "FD");
+  doc.setFillColor(91, 63, 209).circle(...puntos[4], 7.5 * e, "F");
 }
 
 // Las fuentes estándar de PDF solo cubren Latin-1: Intl puede usar espacios
@@ -26,8 +46,13 @@ const limpiar = (texto: string) => texto.replace(/[  ]/g, " ");
 const MARGEN = 15;
 const GRIS = 110;
 
-export async function generarPdf({ presupuesto, cliente, ajustes }: DatosPdf): Promise<jsPDF> {
-  const [{ jsPDF }, { autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
+export async function generarPdf({
+  presupuesto,
+  cliente,
+  ajustes,
+  marcaDeAgua = process.env.NEXT_PUBLIC_DEMO_MODE === "true",
+}: DatosPdf): Promise<jsPDF> {
+  const [{ jsPDF, GState }, { autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const ancho = doc.internal.pageSize.getWidth();
   const derecha = ancho - MARGEN;
@@ -137,12 +162,24 @@ export async function generarPdf({ presupuesto, cliente, ajustes }: DatosPdf): P
     doc.text(doc.splitTextToSize(presupuesto.notas, ancho - MARGEN * 2), MARGEN, y + 5);
   }
 
-  // --- Pie en cada página ---
+  // --- En cada página: marca de agua (solo demo) y pie con la firma ---
   const paginas = doc.getNumberOfPages();
+  const alto = doc.internal.pageSize.getHeight();
   for (let pagina = 1; pagina <= paginas; pagina++) {
     doc.setPage(pagina);
-    doc.setFontSize(8).setTextColor(160);
-    const alto = doc.internal.pageSize.getHeight();
+
+    if (marcaDeAgua) {
+      // Casi transparente (GState = estado gráfico de PDF) para no tapar el contenido.
+      doc.saveGraphicsState();
+      doc.setGState(new GState({ opacity: 0.07 }));
+      doc.setFont("helvetica", "bold").setFontSize(150).setTextColor(91, 63, 209);
+      doc.text("DEMO", ancho / 2, alto / 2 + 20, { align: "center", angle: 45 });
+      doc.restoreGraphicsState();
+    }
+
+    doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(150);
+    dibujarFirma(doc, MARGEN, alto - 11.2, 4);
+    doc.text(`Generado con Cotiza · desarrollado por ${AUTORA}`, MARGEN + 5.5, alto - 8);
     doc.text(`${formatearNumeroPresupuesto(presupuesto.numero)} · página ${pagina} de ${paginas}`, derecha, alto - 8, {
       align: "right",
     });

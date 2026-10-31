@@ -95,6 +95,13 @@ export async function sembrar(repo: Repositorio) {
     tasa?: number;
     notas?: string;
   }[] = [
+    // Historial más antiguo, para que el gráfico de ventas del panel tenga meses con datos.
+    { clienteId: clinica.id, dias: 155, estado: "aceptado", items: [linea("Página web · Landing de una página"), linea("Diseño de logotipo · Básico (2 propuestas)")] },
+    { clienteId: academia.id, dias: 135, estado: "rechazado", items: [linea("Página web · Sitio corporativo (5 páginas)")] },
+    { clienteId: ana.id, dias: 118, estado: "aceptado", items: [linea("Tarjetas de presentación · 500 unidades", 3)] },
+    { clienteId: pedro.id, dias: 96, estado: "aceptado", items: [linea("Gestión de redes sociales · 12 publicaciones", 2), linea("Pendón publicitario · 2 x 3 m")] },
+    { clienteId: ferreteria.id, dias: 74, estado: "aceptado", items: [linea("Diseño de logotipo · Completo (manual de marca)"), linea("Pendón publicitario · 1 x 2 m", 3)] },
+    { clienteId: cafe.id, dias: 58, estado: "rechazado", items: [linea("Gestión de redes sociales · 20 publicaciones + historias", 6)] },
     { clienteId: cafe.id, dias: 40, estado: "aceptado", items: [linea("Diseño de logotipo · Completo (manual de marca)"), linea("Tarjetas de presentación · 500 unidades", 2)] },
     { clienteId: ferreteria.id, dias: 32, estado: "rechazado", items: [linea("Página web · Sitio corporativo (5 páginas)")], notas: "El cliente pidió una opción más económica." },
     { clienteId: ferreteria.id, dias: 25, estado: "aceptado", items: [linea("Página web · Landing de una página"), linea("Pendón publicitario · 2 x 3 m")] },

@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { ResumenDatos } from "@/components/resumen-datos";
+import { PanelControl } from "@/components/panel/panel-control";
 import { MODO_DEMO } from "@/lib/modo";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = { title: "Panel · Cotiza" };
 
 async function UsuarioActual() {
   const supabase = await createClient();
@@ -14,23 +17,19 @@ async function UsuarioActual() {
 
   if (!user) redirect("/login");
 
-  return (
-    <p className="text-zinc-600">
-      Sesión iniciada como <strong>{user.email}</strong>.
-    </p>
-  );
+  return <p className="text-xs text-zinc-500">Sesión iniciada como {user.email}</p>;
 }
 
 export default function PanelPage() {
   return (
-    <>
-      <h1 className="text-2xl font-semibold">Panel</h1>
-      {!MODO_DEMO && (
-        <Suspense fallback={<p className="text-zinc-400">Cargando…</p>}>
-          <UsuarioActual />
-        </Suspense>
-      )}
-      <ResumenDatos />
-    </>
+    <PanelControl
+      sesion={
+        MODO_DEMO ? null : (
+          <Suspense fallback={null}>
+            <UsuarioActual />
+          </Suspense>
+        )
+      }
+    />
   );
 }

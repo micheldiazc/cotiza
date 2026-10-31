@@ -51,7 +51,7 @@ export function PantallaListado() {
               onClick={() => setFiltro(estado)}
               className={cn(
                 "rounded-full border px-3 py-1 text-sm transition-colors",
-                filtro === estado ? "border-zinc-900 bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100",
+                filtro === estado ? "border-primary bg-primary text-primary-foreground" : "text-zinc-600 hover:bg-zinc-100",
               )}
             >
               {estado === "todos" ? "Todos" : NOMBRE_ESTADO[estado]} ({contar(estado)})
