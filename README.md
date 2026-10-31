@@ -90,3 +90,9 @@ lib/datos/         tipos, reglas, interfaz Repositorio e implementaciones
 lib/pdf.ts         generación del PDF
 supabase/          migraciones SQL y prueba de RLS
 ```
+
+## Licencia
+
+© 2026 Michel Díaz Cabrera. **Todos los derechos reservados.** El código es
+público para consultarlo como parte de mi portafolio, pero no se puede copiar,
+modificar, redistribuir ni usar comercialmente sin permiso. Ver [LICENSE](LICENSE).
